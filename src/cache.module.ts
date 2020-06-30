@@ -36,14 +36,14 @@ export class RedisCacheModule {
     return {
       module: RedisCacheModule,
       imports: [
-        CacheConfigModule.forRootAsync(options),
         CacheModule.registerAsync({
+          imports: [CacheConfigModule.forRootAsync(options)],
           useClass: CacheConfigProvider,
           inject: [CACHE_OPTION_PROVIDER],
         }),
       ],
       providers: [CacheProvider],
-      exports: [CacheConfigModule, CacheProvider],
+      exports: [CacheProvider],
     };
   }
 }
