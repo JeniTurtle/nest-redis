@@ -75,7 +75,7 @@ export class CacheProvider {
 
   public async setnx(
     key: string,
-    value: string,
+    value: string | number,
     seconds: number,
   ): Promise<number> {
     const ret = await new Promise<number>((resolve, reject) => {
