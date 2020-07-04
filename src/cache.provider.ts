@@ -79,7 +79,7 @@ export class CacheProvider {
     seconds: number,
   ): Promise<number> {
     const ret = await new Promise<number>((resolve, reject) => {
-      this.redisClient.setnx(key, value, (err: Error, ret: number) => {
+      this.redisClient.setnx(key, String(value), (err: Error, ret: number) => {
         if (err) {
           reject(err);
         } else {

@@ -33,11 +33,13 @@ class CacheConfigModule {
 @Module({})
 export class RedisCacheModule {
   static forRootAsync(options: CacheAsyncConfig): DynamicModule {
+    const configModule = CacheConfigModule.forRootAsync(options);
     return {
       module: RedisCacheModule,
       imports: [
+        configModule,
         CacheModule.registerAsync({
-          imports: [CacheConfigModule.forRootAsync(options)],
+          imports: [configModule],
           useClass: CacheConfigProvider,
           inject: [CACHE_OPTION_PROVIDER],
         }),
