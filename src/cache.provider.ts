@@ -1,13 +1,13 @@
-import schedule from 'node-schedule';
-import { RedisClient } from 'redis';
-import { Reflector } from '@nestjs/core';
+import schedule from "node-schedule";
+import { RedisClient } from "redis";
+import { Reflector } from "@nestjs/core";
 import {
   CACHE_MANAGER,
   Inject,
   Injectable,
   Logger,
   LoggerService,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ICacheManager,
   TCacheKey,
@@ -19,12 +19,12 @@ import {
   ICacheIntervalIOOption,
   TCacheIntervalResult,
   CacheConfig,
-} from './cache.interface';
-import { RedisClientNoReadyException } from './cache.exception';
+} from "./cache.interface";
+import { RedisClientNoReadyException } from "./cache.exception";
 import {
   SERVICE_CACHE_METADATA_KEY,
   CACHE_OPTION_PROVIDER,
-} from './cache.constants';
+} from "./cache.constants";
 
 /**
  * @class CacheProvider
@@ -39,13 +39,13 @@ export class CacheProvider {
   private logger: Logger | LoggerService;
 
   constructor(
-    @Inject('Reflector') private readonly reflector: Reflector,
+    @Inject("Reflector") private readonly reflector: Reflector,
     @Inject(CACHE_MANAGER) private cache: ICacheManager,
-    @Inject(CACHE_OPTION_PROVIDER) private options: CacheConfig,
+    @Inject(CACHE_OPTION_PROVIDER) private options: CacheConfig
   ) {
     this.logger = this.options.logger || new Logger(CacheProvider.name);
-    this.redisClient.on('ready', () => {
-      this.logger.log('Redis已连接！');
+    this.redisClient.on("ready", () => {
+      this.logger.log("Redis已连接！");
     });
   }
 
@@ -73,10 +73,22 @@ export class CacheProvider {
     return this.redisClient.connected;
   }
 
+  public async exists(...args: string[]): Promise<number> {
+    return new Promise((resolve, reject) => {
+      this.redisClient.exists(...args, (err, ret) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(ret);
+        }
+      });
+    });
+  }
+
   public async setnx(
     key: string,
     value: string | number,
-    seconds: number,
+    seconds: number
   ): Promise<number> {
     const ret = await new Promise<number>((resolve, reject) => {
       this.redisClient.setnx(key, String(value), (err: Error, ret: number) => {
@@ -103,7 +115,7 @@ export class CacheProvider {
   public set<T>(
     key: TCacheKey,
     value: any,
-    options?: { ttl: number },
+    options?: { ttl: number }
   ): TCacheResult<T> {
     if (!this.checkCacheServiceAvailable) {
       return Promise.reject(new RedisClientNoReadyException());
@@ -216,7 +228,7 @@ export class CacheProvider {
           if (err) {
             reject(err);
           } else {
-            resolve(reply.map(item => JSON.parse(item)));
+            resolve(reply.map((item) => JSON.parse(item)));
           }
         });
       } else {
@@ -230,7 +242,7 @@ export class CacheProvider {
                 get(target: any, p: string): any {
                   return target[p] && JSON.parse(target[p]);
                 },
-              }),
+              })
             );
           }
         });
@@ -250,14 +262,14 @@ export class CacheProvider {
     const { key, promise, ioMode = false } = options;
     // 包装任务
     const doPromiseTask = () => {
-      return promise().then(data => {
+      return promise().then((data) => {
         this.set(key, data);
         return data;
       });
     };
     // Promise 拦截模式（返回死数据）
     const handlePromiseMode = () => {
-      return this.get(key).then(value => {
+      return this.get(key).then((value) => {
         return value !== null && value !== undefined ? value : doPromiseTask();
       });
     };
@@ -281,7 +293,7 @@ export class CacheProvider {
     const { key, promise, timeout, timing, ioMode = false } = options;
     // 包装任务
     const promiseTask = (): Promise<T> => {
-      return promise().then(data => {
+      return promise().then((data) => {
         this.set(key, data);
         return data;
       });
@@ -293,11 +305,11 @@ export class CacheProvider {
           .then(() => {
             setTimeout(doPromise, timeout.success);
           })
-          .catch(error => {
+          .catch((error) => {
             const time = timeout.error || timeout.success;
             setTimeout(doPromise, time);
             this.logger.warn(
-              `Redis超时任务执行失败，${time / 1000}s 后重试：${error}`,
+              `Redis超时任务执行失败，${time / 1000}s 后重试：${error}`
             );
           });
       };
@@ -308,10 +320,10 @@ export class CacheProvider {
     if (timing) {
       const doPromise = () => {
         promiseTask()
-          .then(data => data)
-          .catch(error => {
+          .then((data) => data)
+          .catch((error) => {
             this.logger.warn(
-              `Redis定时任务执行失败，${timing.error / 1000}s 后重试：${error}`,
+              `Redis定时任务执行失败，${timing.error / 1000}s 后重试：${error}`
             );
             setTimeout(doPromise, timing.error);
           });
