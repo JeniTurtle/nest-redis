@@ -1,3 +1,4 @@
+import * as querystring from "querystring";
 import schedule from "node-schedule";
 import { RedisClient } from "redis";
 import { Reflector } from "@nestjs/core";
@@ -58,10 +59,10 @@ export class CacheProvider {
     if (!redisKey) {
       return 0;
     }
-    if (args.length > 0) {
-      return this.del(`${redisKey}:params=${JSON.stringify(args)}`);
-    }
-    return this.delAll(`${redisKey}:*`);
+    const params = {};
+    args.forEach((arg, index) => (params[index] = arg));
+    const paramString = querystring.stringify(params);
+    return this.delAll(`${redisKey}:${paramString}*`);
   }
 
   public get redisClient(): RedisClient {

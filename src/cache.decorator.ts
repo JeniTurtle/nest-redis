@@ -1,9 +1,10 @@
-import * as lodash from 'lodash';
-import { SetMetadata } from '@nestjs/common';
-import { PROPERTY_DEPS_METADATA } from '@nestjs/common/constants';
-import { ICacheOption, IServiceCacheOptions } from './cache.interface';
-import { SERVICE_CACHE_METADATA_KEY } from './cache.constants';
-import { CacheProvider } from './cache.provider';
+import * as querystring from "querystring";
+import * as lodash from "lodash";
+import { SetMetadata } from "@nestjs/common";
+import { PROPERTY_DEPS_METADATA } from "@nestjs/common/constants";
+import { ICacheOption, IServiceCacheOptions } from "./cache.interface";
+import { SERVICE_CACHE_METADATA_KEY } from "./cache.constants";
+import { CacheProvider } from "./cache.provider";
 
 /**
  * 统配构造器
@@ -18,11 +19,11 @@ export function ServiceCache(ttl?: number): MethodDecorator;
 export function ServiceCache(key: string, ttl?: number): MethodDecorator;
 export function ServiceCache(...args) {
   return (target, property, descriptor: PropertyDescriptor) => {
-    let defaultProp = 'cacheProvider';
+    let defaultProp = "cacheProvider";
     let properties =
       Reflect.getMetadata(PROPERTY_DEPS_METADATA, target.constructor) || [];
     const cacheProperty = properties.find(
-      item => item.type === CacheProvider.name,
+      (item) => item.type === CacheProvider.name
     );
     if (!cacheProperty) {
       properties = [
@@ -32,7 +33,7 @@ export function ServiceCache(...args) {
       Reflect.defineMetadata(
         PROPERTY_DEPS_METADATA,
         properties,
-        target.constructor,
+        target.constructor
       );
     } else if (cacheProperty.key !== defaultProp) {
       defaultProp = cacheProperty.key;
@@ -58,8 +59,10 @@ export function ServiceCache(...args) {
       if (!lodash.isObject(options)) {
         options = { __updateCache: false };
       }
-      const params = JSON.stringify(args);
-      const fullKey = `${key}:params=${params}`;
+      const params = {};
+      args.forEach((arg, index) => (params[index] = arg));
+      const paramString = querystring.stringify(params);
+      const fullKey = `${key}:${paramString}`;
       const result =
         options.__updateCache === true
           ? null
