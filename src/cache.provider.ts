@@ -142,9 +142,13 @@ export class CacheProvider {
         if (err) {
           reject(err);
         }
-        this.del(keys)
-          .then(resolve)
-          .catch(reject);
+        if (keys && keys.length) {
+          this.del(keys)
+            .then(resolve)
+            .catch(reject);
+        } else {
+          resolve();
+        }
       });
     });
   }
