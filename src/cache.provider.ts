@@ -243,11 +243,17 @@ export class CacheProvider {
           } else {
             // resolve(reply);
             resolve(
-              new Proxy(reply, {
-                get(target: any, p: string): any {
-                  return target[p] && JSON.parse(target[p]);
-                },
-              })
+              reply
+                ? new Proxy(reply, {
+                    get(target, p: string) {
+                      try {
+                        return JSON.parse(target[p]);
+                      } catch (err) {
+                        return target[p];
+                      }
+                    },
+                  })
+                : null
             );
           }
         });
