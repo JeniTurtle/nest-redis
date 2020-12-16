@@ -224,6 +224,18 @@ export class CacheProvider {
     });
   }
 
+  public delHash(key: string, ...args: string[]) {
+    return new Promise((resolve, reject) => {
+      this.redisClient.hdel(key, ...args, (err, count) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(count);
+        }
+      });
+    });
+  }
+
   public getHash(key: string);
   public getHash(key: string, subkey: string | string[]);
   public getHash(key: string, subkey?: string | string[]) {
