@@ -198,7 +198,7 @@ export class CacheProvider {
   }
 
   public setHash(key: TCacheKey, value: object);
-  public setHash(key: TCacheKey, subkey: string, value: object);
+  public setHash(key: TCacheKey, subkey: string, value: any);
   public setHash(key: TCacheKey, subkeyOrValue: string | object, value?: any) {
     return new Promise((resolve, reject) => {
       const keys = [key];
