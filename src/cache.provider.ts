@@ -91,19 +91,22 @@ export class CacheProvider {
     value: string | number,
     seconds: number
   ): Promise<number> {
-    const ret = await new Promise<number>((resolve, reject) => {
-      this.redisClient.setnx(key, String(value), (err: Error, ret: number) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(ret);
+    return new Promise<number>((resolve, reject) => {
+      this.redisClient.set(
+        key,
+        String(value),
+        "EX",
+        seconds,
+        "NX",
+        (err: Error, ret) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(ret === "OK" ? 1 : 0);
+          }
         }
-      });
+      );
     });
-    if (seconds) {
-      await this.expire(key, seconds);
-    }
-    return ret;
   }
 
   public get<T>(key: TCacheKey): TCacheResult<T> {
