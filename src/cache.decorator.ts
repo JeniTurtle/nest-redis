@@ -56,11 +56,17 @@ export function ServiceCache(...args) {
     descriptor.value = async function(...args) {
       // 如果方法最后一个参数的__updateCache属性为true，强制更新缓存
       let options: IServiceCacheOptions = lodash.last(args);
-      if (!lodash.isObject(options)) {
+      if (!lodash.isObject(options) || options.__updateCache === undefined) {
         options = { __updateCache: false };
+        args.push(options)
       }
       const params = {};
-      args.forEach((arg, index) => (params[index] = arg));
+      args.forEach((arg, index) => {
+        if (index === args.length - 1) {
+          return;
+        }
+        params[index] = lodash.isObject(arg) ? JSON.stringify(arg) : arg;
+      });
       const paramString = querystring.stringify(params);
       const fullKey = `${key}:${paramString}`;
       const result =
