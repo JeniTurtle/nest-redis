@@ -58,11 +58,10 @@ export function ServiceCache(...args) {
       let options: IServiceCacheOptions = lodash.last(args);
       if (!lodash.isObject(options) || options.__updateCache === undefined) {
         options = { __updateCache: false };
-        args.push(options)
       }
       const params = {};
       args.forEach((arg, index) => {
-        if (index === args.length - 1) {
+        if (lodash.isObject(arg) && options.__updateCache !== undefined) {
           return;
         }
         params[index] = lodash.isObject(arg) ? JSON.stringify(arg) : arg;
